@@ -8,7 +8,7 @@ values = df_train.values
 np.random.shuffle(values)
 
 # splitting to train and validation set
-index = int(len(values) * 0.8)
+index = int(len(values) * 0.9)
 train, val = values[:index], values[index:]
 
 df_tr = pd.DataFrame([f for f in train])

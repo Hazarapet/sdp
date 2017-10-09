@@ -9,13 +9,14 @@ from keras.utils import plot_model
 from keras.models import Sequential
 from keras.optimizers import SGD, Adam
 from keras.initializers import RandomUniform, RandomNormal
-from keras.layers import Dense, Activation, BatchNormalization, Dropout, GaussianNoise
+from keras.layers import Dense, Activation, BatchNormalization, Dropout
 from keras import callbacks
 
 st_time = time.time()
 BATCH_SIZE = 1000
 N_EPOCH = 200
-REG = 2e-3
+REG = 1e-6
+DP = 0.2
 
 # Read in our input data
 df_train = pd.read_csv('resource/train_split.csv')
@@ -50,23 +51,65 @@ print 'y_val shape:', y_val.shape
 print 'x_val shape:', x_val.shape
 
 model = Sequential()
-model.add(Dense(32, input_shape=(57,)))
+model.add(Dense(16, input_shape=(57,)))
 model.add(BatchNormalization(axis=1))
 model.add(Activation('relu'))
-model.add(GaussianNoise(1e-3))
-model.add(Dropout(0.5))
+model.add(Dropout(DP))
+
+model.add(Dense(16, kernel_regularizer=l2(REG)))
+model.add(BatchNormalization(axis=1))
+model.add(Activation('relu'))
+model.add(Dropout(DP))
 
 model.add(Dense(32, kernel_regularizer=l2(REG)))
 model.add(BatchNormalization(axis=1))
 model.add(Activation('relu'))
-model.add(GaussianNoise(1e-3))
-model.add(Dropout(0.5))
+model.add(Dropout(DP))
 
 model.add(Dense(32, kernel_regularizer=l2(REG)))
 model.add(BatchNormalization(axis=1))
 model.add(Activation('relu'))
-model.add(GaussianNoise(1e-3))
-model.add(Dropout(0.5))
+model.add(Dropout(DP))
+
+model.add(Dense(64, kernel_regularizer=l2(REG)))
+model.add(BatchNormalization(axis=1))
+model.add(Activation('relu'))
+model.add(Dropout(DP))
+
+model.add(Dense(64, kernel_regularizer=l2(REG)))
+model.add(BatchNormalization(axis=1))
+model.add(Activation('relu'))
+model.add(Dropout(DP))
+
+model.add(Dense(128, kernel_regularizer=l2(REG)))
+model.add(BatchNormalization(axis=1))
+model.add(Activation('relu'))
+model.add(Dropout(DP))
+
+model.add(Dense(128, kernel_regularizer=l2(REG)))
+model.add(BatchNormalization(axis=1))
+model.add(Activation('relu'))
+model.add(Dropout(DP))
+
+model.add(Dense(256, kernel_regularizer=l2(REG)))
+model.add(BatchNormalization(axis=1))
+model.add(Activation('relu'))
+model.add(Dropout(DP))
+
+model.add(Dense(256, kernel_regularizer=l2(REG)))
+model.add(BatchNormalization(axis=1))
+model.add(Activation('relu'))
+model.add(Dropout(DP))
+
+model.add(Dense(512, kernel_regularizer=l2(REG)))
+model.add(BatchNormalization(axis=1))
+model.add(Activation('relu'))
+model.add(Dropout(DP))
+
+model.add(Dense(512, kernel_regularizer=l2(REG)))
+model.add(BatchNormalization(axis=1))
+model.add(Activation('relu'))
+model.add(Dropout(DP))
 
 model.add(Dense(1, activation='sigmoid'))
 

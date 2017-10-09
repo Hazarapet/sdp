@@ -1,5 +1,5 @@
-import json
+import pandas as pd
 
-with open('mean.json', 'r') as outfile:
-    mean = json.load(outfile)
-    print mean
+df_train = pd.read_csv('resource/train.csv')
+
+print df_train.values.shape
