@@ -1,15 +1,21 @@
 import sys
 import time
+import json
 import numpy as np
 import pandas as pd
+from keras.utils import to_categorical
+from keras.regularizers import l2
+from keras.utils import plot_model
 from keras.models import Sequential
 from keras.optimizers import SGD, Adam
-from keras.layers import Dense, Activation, BatchNormalization, Dropout
+from keras.initializers import RandomUniform, RandomNormal
+from keras.layers import Dense, Activation, BatchNormalization, Dropout, GaussianNoise
 from keras import callbacks
 
 st_time = time.time()
 BATCH_SIZE = 1000
-N_EPOCH = 100
+N_EPOCH = 200
+REG = 2e-3
 
 # Read in our input data
 df_train = pd.read_csv('resource/train_split.csv')
@@ -17,77 +23,58 @@ df_val = pd.read_csv('resource/val_split.csv')
 
 df_test = pd.read_csv('resource/test.csv')
 
-# This prints out (rows, columns) in each dataframe
-print('Train shape:', df_train.shape)
-print('Val shape:', df_val.shape)
-print('Test shape:', df_test.shape)
+with open('mean.json', 'r') as outfile:
+    mean = np.array(json.load(outfile))
+
+# This prints out (rows, columns)
+print 'df_train shape:', df_train.shape
+print 'df_val shape:', df_val.shape
+print 'df_test shape:', df_test.shape
+print 'mean shape:', mean.shape
 
 y_train = np.array(df_train['target'].values)
 y_val = np.array(df_val['target'].values)
 
-x_train = np.array(df_train.drop(['target', 'id'], axis=1))
-x_val = np.array(df_val.drop(['target', 'id'], axis=1))
+# y_train = to_categorical(y_train, num_classes=10)
+# y_val = to_categorical(y_val, num_classes=10)
+
+x_train = np.array(df_train.drop(['target', 'id'], axis=1) - mean)
+x_val = np.array(df_val.drop(['target', 'id'], axis=1) - mean)
 
 id_test = df_test['id'].values
-x_test = np.array(df_test.drop(['id'], axis=1))
+x_test = np.array(df_test.drop(['id'], axis=1) - mean)
+
+print '\ny_train shape:', y_train.shape
+print 'x_train shape:', x_train.shape
+print 'y_val shape:', y_val.shape
+print 'x_val shape:', x_val.shape
 
 model = Sequential()
 model.add(Dense(32, input_shape=(57,)))
 model.add(BatchNormalization(axis=1))
-model.add(Activation('selu'))
+model.add(Activation('relu'))
+model.add(GaussianNoise(1e-3))
 model.add(Dropout(0.5))
 
-model.add(Dense(32))
+model.add(Dense(32, kernel_regularizer=l2(REG)))
 model.add(BatchNormalization(axis=1))
-model.add(Activation('selu'))
+model.add(Activation('relu'))
+model.add(GaussianNoise(1e-3))
 model.add(Dropout(0.5))
 
-model.add(Dense(64))
+model.add(Dense(32, kernel_regularizer=l2(REG)))
 model.add(BatchNormalization(axis=1))
-model.add(Activation('selu'))
-model.add(Dropout(0.5))
-
-model.add(Dense(64))
-model.add(BatchNormalization(axis=1))
-model.add(Activation('selu'))
-model.add(Dropout(0.5))
-
-model.add(Dense(128))
-model.add(BatchNormalization(axis=1))
-model.add(Activation('selu'))
-model.add(Dropout(0.5))
-
-model.add(Dense(128))
-model.add(BatchNormalization(axis=1))
-model.add(Activation('selu'))
-model.add(Dropout(0.5))
-
-model.add(Dense(256))
-model.add(BatchNormalization(axis=1))
-model.add(Activation('selu'))
-model.add(Dropout(0.5))
-
-model.add(Dense(256, input_shape=(57,)))
-model.add(BatchNormalization(axis=1))
-model.add(Activation('selu'))
-model.add(Dropout(0.5))
-
-model.add(Dense(512))
-model.add(BatchNormalization(axis=1))
-model.add(Activation('selu'))
-model.add(Dropout(0.5))
-
-model.add(Dense(512))
-model.add(BatchNormalization(axis=1))
-model.add(Activation('selu'))
+model.add(Activation('relu'))
+model.add(GaussianNoise(1e-3))
 model.add(Dropout(0.5))
 
 model.add(Dense(1, activation='sigmoid'))
 
 model.summary()
+plot_model(model, to_file='model.png', show_shapes=True)
 
-# adam = Adam(lr=1e-4, decay=1e-5)
-sgd = SGD(lr=1e-2, momentum=.9, decay=1e-5)
+adam = Adam(lr=1e-4, decay=1e-5)
+sgd = SGD(lr=1e-3, momentum=.9, decay=1e-5)
 
 model.compile(loss='binary_crossentropy',
               optimizer='adam',
@@ -96,7 +83,7 @@ model.compile(loss='binary_crossentropy',
 rm_cb = callbacks.RemoteMonitor()
 ers_cb = callbacks.EarlyStopping(patience=20)
 
-model.fit(x_train, y_train, validation_data=(x_val, y_val), epochs=N_EPOCH, batch_size=BATCH_SIZE, callbacks=[rm_cb, ers_cb])
+model.fit(x_train, y_train, validation_data=(x_val, y_val), epochs=N_EPOCH, batch_size=BATCH_SIZE, callbacks=[rm_cb, ers_cb], shuffle=True)
 
 print('================= Validation =================')
 [v_loss, v_acc] = model.evaluate(x_val, y_val, batch_size=BATCH_SIZE, verbose=1)
