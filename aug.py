@@ -1,8 +1,8 @@
-import json
+import sys
 import numpy as np
 import pandas as pd
 
-threshold = 7e-4
+threshold = 1e-1
 
 df_train = pd.read_csv('resource/train.csv')
 
@@ -13,11 +13,9 @@ not_target = df_train[df_train['target'] == 0]
 not_target_mean = np.mean(not_target, axis=0)
 
 _difference = np.abs(target_mean - not_target_mean)
-_keys = [k for k, item in _difference[_difference < threshold].iteritems()]
+_keys = [k for k, item in _difference[_difference > threshold].iteritems()]
 _max = np.max(df_train[_keys], axis=0)
 _min = np.min(df_train[_keys], axis=0)
-
-_indices = [i for i, el in enumerate(df_train.columns) if len(np.where(np.array(_keys) == el)[0])]
 
 augment = df_train
 count = 0
@@ -26,7 +24,7 @@ for ind, tr in df_train.iterrows():
     if tr['target'] == 0:
         continue
 
-    _randoms = [np.random.randint(mn, mx, size=1)[0] for mn, mx in np.array(zip(_min, _max))]
+    _randoms = [np.random.randint(mx, size=1)[0] for mn, mx in np.array(zip(_min, _max))]
     # _randoms = [7777 for rn in np.array(_max)]
 
     new_tr = tr.copy()
@@ -35,6 +33,7 @@ for ind, tr in df_train.iterrows():
 
     augment = augment.append(pd.DataFrame([new_tr], columns=augment.columns))
     count += 1
+
     print 'row: {}, count: {}'.format(ind, count)
 
 print df_train.shape
