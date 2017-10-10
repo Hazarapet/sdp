@@ -4,7 +4,7 @@ from sklearn.cross_validation import train_test_split
 import xgboost as xgb
 
 # Read in our input data
-df_train = pd.read_csv('resource/train.csv')
+df_train = pd.read_csv('resource/augmented_train.csv')
 df_test = pd.read_csv('resource/test.csv')
 
 # This prints out (rows, columns) in each dataframe
@@ -23,7 +23,7 @@ x_train = df_train.drop(['target', 'id'], axis=1)
 x_test = df_test.drop(['id'], axis=1)
 
 # Take a random 20% of the dataset as validation data
-x_train, x_valid, y_train, y_valid = train_test_split(x_train, y_train, test_size=0.1, random_state=4242)
+x_train, x_valid, y_train, y_valid = train_test_split(x_train, y_train, test_size=0.03, random_state=4242)
 print('Train samples: {} Validation samples: {}'.format(len(x_train), len(x_valid)))
 
 # Convert our data into XGBoost format

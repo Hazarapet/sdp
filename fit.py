@@ -15,8 +15,8 @@ from keras import callbacks
 st_time = time.time()
 BATCH_SIZE = 1000
 N_EPOCH = 200
-REG = 1e-6
-DP = 0.2
+REG = 1e-4
+DP = 0.5
 
 # Read in our input data
 df_train = pd.read_csv('resource/train_split.csv')
@@ -51,62 +51,12 @@ print 'y_val shape:', y_val.shape
 print 'x_val shape:', x_val.shape
 
 model = Sequential()
-model.add(Dense(16, input_shape=(57,)))
-model.add(BatchNormalization(axis=1))
-model.add(Activation('relu'))
-model.add(Dropout(DP))
-
-model.add(Dense(16, kernel_regularizer=l2(REG)))
+model.add(Dense(32, input_shape=(57,)))
 model.add(BatchNormalization(axis=1))
 model.add(Activation('relu'))
 model.add(Dropout(DP))
 
 model.add(Dense(32, kernel_regularizer=l2(REG)))
-model.add(BatchNormalization(axis=1))
-model.add(Activation('relu'))
-model.add(Dropout(DP))
-
-model.add(Dense(32, kernel_regularizer=l2(REG)))
-model.add(BatchNormalization(axis=1))
-model.add(Activation('relu'))
-model.add(Dropout(DP))
-
-model.add(Dense(64, kernel_regularizer=l2(REG)))
-model.add(BatchNormalization(axis=1))
-model.add(Activation('relu'))
-model.add(Dropout(DP))
-
-model.add(Dense(64, kernel_regularizer=l2(REG)))
-model.add(BatchNormalization(axis=1))
-model.add(Activation('relu'))
-model.add(Dropout(DP))
-
-model.add(Dense(128, kernel_regularizer=l2(REG)))
-model.add(BatchNormalization(axis=1))
-model.add(Activation('relu'))
-model.add(Dropout(DP))
-
-model.add(Dense(128, kernel_regularizer=l2(REG)))
-model.add(BatchNormalization(axis=1))
-model.add(Activation('relu'))
-model.add(Dropout(DP))
-
-model.add(Dense(256, kernel_regularizer=l2(REG)))
-model.add(BatchNormalization(axis=1))
-model.add(Activation('relu'))
-model.add(Dropout(DP))
-
-model.add(Dense(256, kernel_regularizer=l2(REG)))
-model.add(BatchNormalization(axis=1))
-model.add(Activation('relu'))
-model.add(Dropout(DP))
-
-model.add(Dense(512, kernel_regularizer=l2(REG)))
-model.add(BatchNormalization(axis=1))
-model.add(Activation('relu'))
-model.add(Dropout(DP))
-
-model.add(Dense(512, kernel_regularizer=l2(REG)))
 model.add(BatchNormalization(axis=1))
 model.add(Activation('relu'))
 model.add(Dropout(DP))
@@ -120,7 +70,7 @@ adam = Adam(lr=1e-4, decay=1e-5)
 sgd = SGD(lr=1e-3, momentum=.9, decay=1e-5)
 
 model.compile(loss='binary_crossentropy',
-              optimizer='adam',
+              optimizer=adam,
               metrics=['accuracy'])
 
 rm_cb = callbacks.RemoteMonitor()

@@ -1,5 +1,3 @@
-import pandas as pd
+import numpy as np
 
-df_train = pd.read_csv('resource/train.csv')
-
-print df_train.values.shape
+print np.random.randint(-1, 4, size=1)

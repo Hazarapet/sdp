@@ -1,5 +1,6 @@
 import cv2
 import numpy as np
+import pandas as pd
 
 
 def iterate_minibatches(inputs, batchsize=10):
@@ -12,39 +13,30 @@ def iterate_minibatches(inputs, batchsize=10):
         yield np.array(inputs)[- (len(inputs) % batchsize):]
 
 
-def aug(array, input):
-    # input's shape (cn, w, h)
-    rn1 = np.random.randint(0, 12)
-    rn2 = np.random.randint(input.shape[1] - 12, input.shape[1])  # this is much better
+def aug(df_train, threshold=7e-4):
+    target = df_train[df_train['target'] == 1]
+    target_mean = np.mean(target, axis=0)
 
-    # rotate 90
-    rt90 = np.rot90(input, 1, axes=(1, 2))
-    array.append(rt90)
+    not_target = df_train[df_train['target'] == 0]
+    not_target_mean = np.mean(not_target, axis=0)
 
-    # flip h
-    flip_h = np.flip(input, 2)
-    array.append(flip_h)
+    _difference = np.abs(target_mean - not_target_mean)
+    _keys = [k for k, item in _difference[_difference < threshold].iteritems()]
+    _max = np.max(df_train[_keys], axis=0)
 
-    # flip v
-    # flip_v = np.flip(input, 1)
-    # array.append(flip_v)
+    augment = df_train
+    for ind, tr in df_train.iterrows():
+        if tr['target'] == 0:
+            continue
 
-    # random crop with 32px shift
-    # TODO Kind of overfiting technique
-    crop = input.transpose((1, 2, 0))
-    crop = cv2.resize(crop[rn1:rn2, rn1:rn2], (crop.shape[0], crop.shape[1]))
-    crop = crop.transpose((2, 0, 1))
-    array.append(crop)
+        _randoms = [np.random.randint(rn, size=1)[0] for rn in np.array(_max)]
 
-    # rotate 90, flip v
-    # rot90_flip_v = np.rot90(flip_v, 1, axes=(1, 2))
-    # array.append(rot90_flip_v)
+        for k, rn in zip(_keys, _randoms):
+            tr[k] = rn
 
-    # rotate 90, flip h
-    rot90_flip_h = np.rot90(flip_h, 1, axes=(1, 2))
-    array.append(rot90_flip_h)
+        augment = augment.append(pd.DataFrame([tr], columns=augment.columns))
 
-    return array
+    return augment
 
 
 def ensemble(array):
