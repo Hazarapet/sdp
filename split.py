@@ -4,7 +4,7 @@ import pandas as pd
 df_train = pd.read_csv('resource/train.csv')
 values = df_train.values
 
-#  we should shuffle all examples
+# we should shuffle all examples
 np.random.shuffle(values)
 
 # splitting to train and validation set
